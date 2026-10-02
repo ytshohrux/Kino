@@ -300,6 +300,20 @@ async def stats_cmd(message: types.Message):
     tot, act, blk = await db.get_stats()
     await message.reply(f"📊 <b>Bot Statistikasi:</b>\n\n👥 Jami: {tot}\n✅ Faol: {act}\n❌ Bloklaganlar: {blk}")
 
+@dp.message(Command("admin"))
+async def admin_panel_cmd(message: types.Message):
+    if not await db.is_admin(message.from_user.id):
+        return await message.answer("❌ Siz admin emassiz!")
+
+    await message.answer(
+        "<b>👨‍💻 Admin panelga xush kelibsiz!</b>\n\n"
+        "Kerakli buyruqlar:\n"
+        "▪️ Kino qo'shish: Videoga <code>/add KODI | Nomi</code> deb yozing\n"
+        "▪️ Kanal qo'shish: <code>/add_req_channel ID URL Limit Nomi</code>\n"
+        "▪️ Statistika: /stats\n"
+        "▪️ Xabar tarqatish: /broadcast (xabarga reply qilib)",
+        parse_mode=ParseMode.HTML
+    )
 @dp.message(Command("admin_refs"))
 async def admin_refs_cmd(message: types.Message):
     if not await db.is_admin(message.from_user.id): return
