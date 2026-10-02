@@ -4,7 +4,7 @@ import os
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8450474807:AAE79-IJyX8EvWHjZl4qGJdL3HC1lYY-CRg")
 
 # MongoDB ulanish havolasi (URI)
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://famonov054_db_user:m17VCDTkYQkcLcX@kino.2zcd5fu.mongodb.net/?appName=Kino")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://famonov054_db_user:Shoh0909@kino.2zcd5fu.mongodb.net/?appName=Kino")
 
 # Webhook manzili (Render.com dagi ilova havolasi: masalan https://kino-bot.onrender.com/webhook)
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://kino-pa22.onrender.com/webhook")
