@@ -138,11 +138,11 @@ class Database:
 
     # --- ADMINS & REFERRALS ---
     @staticmethod
-    async def is_admin(user_id: int):
-        if user_id == SUPER_ADMIN_ID:
-            return True
-        admin = await admins.find_one({"_id": user_id})
-        return bool(admin)
+async def is_admin(user_id: int):
+    if user_id == config.SUPER_ADMIN_ID:
+        return True
+    admin = await admins.find_one({"_id": user_id})
+    return bool(admin)
 
     @staticmethod
     async def add_admin(user_id: int):
