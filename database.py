@@ -13,6 +13,7 @@ admins = db.admins
 admin_refs = db.admin_refs
 
 class Database:
+    # --- USERS ---
     @staticmethod
     async def get_user(user_id: int):
         return await users.find_one({"_id": user_id})
@@ -77,6 +78,24 @@ class Database:
     @staticmethod
     async def get_all_movies():
         return await movies.find().to_list(length=None)
+
+    @staticmethod
+    async def delete_movie(code: str) -> bool:
+        res = await movies.delete_one({"_id": code})
+        return res.deleted_count > 0
+
+    @staticmethod
+    async def count_movies() -> int:
+        return await movies.count_documents({})
+
+    @staticmethod
+    async def inc_views(code: str):
+        await movies.update_one({"_id": code}, {"$inc": {"views": 1}})
+
+    @staticmethod
+    async def get_top_movies(limit: int = 10) -> list:
+        cursor = movies.find({"views": {"$gt": 0}}).sort("views", -1).limit(limit)
+        return await cursor.to_list(length=limit)
 
     # --- CHANNELS ---
     @staticmethod
