@@ -7,7 +7,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "8450474807:AAE79-IJyX8EvWHjZl4qGJdL3HC1lYY-C
 MONGO_URI = os.getenv("MONGO_URI","mongodb+srv://fuzionov854_db_user:m17VCDTkYQkcLcX@kino...")
 
 # Webhook manzili (Render.com dagi ilova havolasi: masalan https://kino-bot.onrender.com/webhook)
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://kino-bot.onrender.com/webhook")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://kino-pa22.onrender.com/webhook")
 
 # Asosiy admin (Super Admin) ning Telegram ID si
 SUPER_ADMIN_ID = int(os.getenv("SUPER_ADMIN_ID", "7162630033"))
