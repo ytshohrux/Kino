@@ -4,7 +4,7 @@ import asyncio
 import time
 from fastapi import FastAPI, Request
 from aiogram import Bot, Dispatcher, F, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BufferedInputFile
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BufferedInputFile, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import CommandStart, Command
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
@@ -12,10 +12,20 @@ from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter
 from database import Database as db
 import config
 
-# Bot va FastAPI (ParseMode xatoligi to'g'irlandi)
+# Bot va FastAPI
 bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 app = FastAPI()
+
+# Asosiy pastki tugmalar menyusi
+main_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🎬 Kino qidirish")],
+        [KeyboardButton(text="🏆 Top kinolar"), KeyboardButton(text="👥 Takliflarim")],
+        [KeyboardButton(text="📊 Statistika"), KeyboardButton(text="✍️ Adminga yozish")]
+    ],
+    resize_keyboard=True
+)
 
 # Cache uchun o'zgaruvchilar (Smart Channels)
 channels_cache = {"data": [], "last_updated": 0}
@@ -99,7 +109,7 @@ async def start_cmd(message: types.Message):
     if args and await db.get_movie(args):
         await send_movie(message, args)
     else:
-        await message.answer("🎬 <b>Kino izlash uchun kino kodini yoki nomini yuboring!</b>")
+        await message.answer("🎬 <b>Xush kelibsiz! Kino izlash uchun kino kodini yoki nomini yuboring yoki pastdagi tugmalardan foydalaning:</b>", reply_markup=main_menu)
 
 @dp.callback_query(F.data.startswith("check_"))
 async def check_sub_callback(call: types.CallbackQuery):
@@ -117,15 +127,40 @@ async def check_sub_callback(call: types.CallbackQuery):
     if args and await db.get_movie(args):
         await send_movie(call.message, args, call.from_user.id)
     else:
-        await bot.send_message(call.from_user.id, "🎬 <b>Xush kelibsiz! Kino kodini yoki nomini yuboring.</b>")
+        await bot.send_message(call.from_user.id, "🎬 <b>Xush kelibsiz! Kino kodini yoki nomini yuboring:</b>", reply_markup=main_menu)
 
 async def send_movie(message_or_call, movie_code: str, chat_id: int = None):
     target_chat = chat_id if chat_id else message_or_call.chat.id
     movie = await db.get_movie(movie_code)
     if movie:
-        await bot.send_video(target_chat, video=movie["file_id"], caption=f"🍿 <b>{movie['title']}</b>\n\n@{(await bot.get_me()).username} orqali topildi!")
+        await bot.send_video(target_chat, video=movie["file_id"], caption=f"🍿 <b>{movie['title']}</b>\n\n@{(await bot.get_me()).username} orqali topildi!", reply_markup=main_menu)
     else:
-        await bot.send_message(target_chat, "❌ Bunday kino topilmadi.")
+        await bot.send_message(target_chat, "❌ Bunday kino topilmadi.", reply_markup=main_menu)
+
+# Pastki tugmalar uchun handlerlar
+@dp.message(F.text == "🎬 Kino qidirish")
+async def btn_search_movie(message: types.Message):
+    await message.answer("🔍 <b>Kino kodini yoki nomini yuboring:</b>", reply_markup=main_menu)
+
+@dp.message(F.text == "👥 Takliflarim")
+async def btn_my_refs(message: types.Message):
+    count = await db.get_user_refs_count(message.from_user.id)
+    me = await bot.get_me()
+    link = f"https://t.me/{me.username}?start={message.from_user.id}"
+    await message.answer(f"👥 <b>Sizning takliflaringiz:</b> {count} ta\n🔗 <b>Maxsus havolangiz:</b> {link}", reply_markup=main_menu)
+
+@dp.message(F.text == "📊 Statistika")
+async def btn_stats(message: types.Message):
+    tot, act, blk = await db.get_stats()
+    await message.answer(f"📊 <b>Bot Statistikasi:</b>\n\n👥 Jami foydalanuvchilar: {tot}\n✅ Faol: {act}\n❌ Bloklaganlar: {blk}", reply_markup=main_menu)
+
+@dp.message(F.text == "✍️ Adminga yozish")
+async def btn_support(message: types.Message):
+    await message.answer("📞 Savollar va takliflar uchun adminga murojaat qiling: @Shohruh_Sulaymonov", reply_markup=main_menu)
+
+@dp.message(F.text == "🏆 Top kinolar")
+async def btn_top_movies(message: types.Message):
+    await message.answer("🏆 Tez kunda eng ko'p ko'rilgan kinolar ro'yxati qo'shiladi!", reply_markup=main_menu)
 
 @dp.message(F.text, ~F.text.startswith("/"))
 async def search_movie_handler(message: types.Message):
@@ -145,16 +180,16 @@ async def search_movie_handler(message: types.Message):
         res = "🔍 <b>Natijalar:</b>\n\n"
         for m in movies:
             res += f"🎬 {m['title']} - Kodi: <code>{m['_id']}</code>\n"
-        await message.answer(res)
+        await message.answer(res, reply_markup=main_menu)
     else:
-        await message.answer("❌ Hech narsa topilmadi.")
+        await message.answer("❌ Hech narsa topilmadi.", reply_markup=main_menu)
 
 @dp.message(Command("my_refs"))
 async def my_refs_cmd(message: types.Message):
     count = await db.get_user_refs_count(message.from_user.id)
     me = await bot.get_me()
     link = f"https://t.me/{me.username}?start={message.from_user.id}"
-    await message.answer(f"👥 <b>Sizning takliflaringiz:</b> {count} ta\n🔗 <b>Havolangiz:</b> {link}")
+    await message.answer(f"👥 <b>Sizning takliflaringiz:</b> {count} ta\n🔗 <b>Havolangiz:</b> {link}", reply_markup=main_menu)
 
 @dp.message(Command("add"))
 async def add_movie_cmd(message: types.Message):
@@ -301,7 +336,6 @@ async def broadcast_cmd(message: types.Message):
             
     await message.reply(f"✅ <b>Tarqatish yakunlandi.</b>\n\nYuborildi: {success}\nBloklaganlar/Xatolar: {fail}")
 
-
 @dp.message(Command("clean_db"))
 async def clean_db_cmd(message: types.Message):
     if message.from_user.id != config.SUPER_ADMIN_ID: return
@@ -341,7 +375,6 @@ async def super_del_admin(message: types.Message):
         await message.reply(f"✅ {del_id} adminlikdan olindi.")
     except:
         await message.reply("Xato! /del_admin [ID]")
-
 
 @app.on_event("startup")
 async def on_startup():
