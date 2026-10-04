@@ -1,16 +1,19 @@
 import os
 
-# Telegram bot tokeni (@BotFather dan olinadi)
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8450474807:AAE79-IJyX8EvWHjZl4qGJdL3HC1lYY-CRg")
 
-# MongoDB ulanish havolasi (URI)
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://famonov054_db_user:Shoh0909@kino.2zcd5fu.mongodb.net/?appName=Kino")
+def _require(name: str) -> str:
+    """Muhim qiymat environment'da bo'lmasa, bot ishga tushmasdan xato beradi."""
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"'{name}' environment variable o'rnatilmagan!")
+    return value
 
-# Webhook manzili (Render.com dagi ilova havolasi: masalan https://kino-bot.onrender.com/webhook)
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://kino-pa22.onrender.com/webhook")
 
-# Asosiy admin (Super Admin) ning Telegram ID si
-SUPER_ADMIN_ID = int(os.getenv("SUPER_ADMIN_ID", "7162630033"))
+# Barchasi Render > Environment bo'limida kiritiladi (kodda yozilmaydi)
+BOT_TOKEN = _require("BOT_TOKEN")
+MONGO_URI = _require("MONGO_URI")
+WEBHOOK_URL = _require("WEBHOOK_URL")
+SUPER_ADMIN_ID = int(_require("SUPER_ADMIN_ID"))
 
-# Render.com porti
+# Render portni o'zi beradi
 PORT = int(os.getenv("PORT", 8000))
